@@ -8,11 +8,10 @@ services:
       POSTGRES_USER: ledger_user
       POSTGRES_PASSWORD: ledger_password
       POSTGRES_DB: ledger_db
-    ports:
-      - "5432:5432"
+  
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ledger_one_data_clean:/var/lib/postgresql/data
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  ledger_one_data_clean:
