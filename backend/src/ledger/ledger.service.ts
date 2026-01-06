@@ -110,7 +110,7 @@ export class LedgerService {
 
             // 5. Update Idempotency Key with Response
             if (idempotencyKey) {
-                await manager.update(IdempotencyKey, { key: idempotencyKey }, { response: savedTransaction });
+                await manager.update(IdempotencyKey, { key: idempotencyKey }, { response: JSON.parse(JSON.stringify(savedTransaction)) });
             }
 
             // 6. Commit
