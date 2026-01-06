@@ -61,7 +61,15 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
         throw new Error(error.message || "Failed to create transaction")
       }
 
-      toast.success("Transaction recorded successfully")
+      const data = await response.json()
+      if (data.status === 'ACCEPTED') {
+        toast.message("Transaction Queued", {
+          description: `Job ID: ${data.jobId}. Processing in background.`
+        })
+      } else {
+        toast.success("Transaction recorded successfully")
+      }
+
       setDescription("")
       setReference("")
       setEntries([{ accountId: "", amount: "", type: "DEBIT" }, { accountId: "", amount: "", type: "CREDIT" }])
@@ -84,11 +92,11 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Description</label>
-              <Input value={description} onChange={e => setDescription(e.target.value)} required placeholder="e.g. Server Payment" />
+              <Input value={description} onChange={(e: { target: { value: React.SetStateAction<string> } }) => setDescription(e.target.value)} required placeholder="e.g. Server Payment" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Reference</label>
-              <Input value={reference} onChange={e => setReference(e.target.value)} required placeholder="e.g. INV-001" />
+              <Input value={reference} onChange={(e: { target: { value: React.SetStateAction<string> } }) => setReference(e.target.value)} required placeholder="e.g. INV-001" />
             </div>
           </div>
 
@@ -103,7 +111,7 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
                   className="flex-1" 
                   placeholder="Account ID" 
                   value={entry.accountId} 
-                  onChange={e => updateEntry(index, "accountId", e.target.value)} 
+                  onChange={(e: { target: { value: string } }) => updateEntry(index, "accountId", e.target.value)} 
                   required 
                 />
                 <Input 
@@ -113,7 +121,7 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
                   step="0.01" 
                   min="0"
                   value={entry.amount} 
-                  onChange={e => updateEntry(index, "amount", e.target.value)} 
+                  onChange={(e: { target: { value: string } }) => updateEntry(index, "amount", e.target.value)} 
                   required 
                 />
                 <select 

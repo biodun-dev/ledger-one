@@ -13,5 +13,12 @@ services:
       - ledger_one_data_clean:/var/lib/postgresql/data
     restart: unless-stopped
 
+  redis:
+    image: redis:alpine
+    container_name: ledger_one_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
 volumes:
   ledger_one_data_clean:

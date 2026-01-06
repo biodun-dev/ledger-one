@@ -1,17 +1,32 @@
-import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Body, Controller, Get, Headers, HttpCode, Post } from '@nestjs/common';
+import { Queue } from 'bullmq';
 import { CreateTransactionDto } from './ledger.dto';
 import { LedgerService } from './ledger.service';
 
 @Controller('ledger')
 export class LedgerController {
-    constructor(private readonly ledgerService: LedgerService) { }
+    constructor(
+        private readonly ledgerService: LedgerService,
+        @InjectQueue('ledger_transactions') private readonly transactionQueue: Queue
+    ) { }
 
     @Post('/transactions')
+    @HttpCode(202)
     async createTransaction(
         @Body() dto: CreateTransactionDto,
         @Headers('idempotency-key') idempotencyKey: string,
     ) {
-        return this.ledgerService.createTransaction(dto, idempotencyKey);
+        const job = await this.transactionQueue.add('process', {
+            dto,
+            idempotencyKey
+        });
+
+        return {
+            status: 'ACCEPTED',
+            message: 'Transaction queued for processing',
+            jobId: job.id
+        };
     }
 
     @Post('/accounts')
