@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsString, Min, ValidateNested } from 'class-validator';
-import { EntryType } from './transaction.entity';
+import { EntryType } from '../entities/transaction.entity';
 
 export class CreateEntryDto {
     @IsString()

@@ -1,6 +1,6 @@
 "use client"
 
-import { TransactionForm } from "@/components/transactionmform"
+import { TransactionForm } from "@/components/transaction-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useEffect, useState } from "react"
 import { Toaster } from "sonner"

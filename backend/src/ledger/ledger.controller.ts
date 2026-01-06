@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Body, Controller, Get, Headers, HttpCode, Post } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import { CreateTransactionDto } from './ledger.dto';
+import { CreateTransactionDto } from './dto/ledger.dto';
 import { LedgerService } from './ledger.service';
 
 @Controller('ledger')

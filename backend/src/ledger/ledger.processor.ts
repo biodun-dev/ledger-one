@@ -1,7 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { CreateTransactionDto } from './ledger.dto';
+import { CreateTransactionDto } from './dto/ledger.dto';
 import { LedgerService } from './ledger.service';
 
 @Processor('ledger_transactions')

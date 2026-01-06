@@ -2,9 +2,9 @@ import { BadRequestException, ConflictException, Injectable, Logger, NotFoundExc
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { IdempotencyKey } from '../common/idempotency.entity';
-import { Account } from './account.entity';
-import { CreateEntryDto, CreateTransactionDto } from './ledger.dto';
-import { Entry, EntryType, Transaction } from './transaction.entity';
+import { CreateEntryDto, CreateTransactionDto } from './dto/ledger.dto';
+import { Account } from './entities/account.entity';
+import { Entry, EntryType, Transaction } from './entities/transaction.entity';
 
 @Injectable()
 export class LedgerService {
@@ -24,9 +24,7 @@ export class LedgerService {
         try {
             const manager = queryRunner.manager;
 
-            // 1. Check Idempotency
             if (idempotencyKey) {
-                // Lock the idempotency key row to prevent race conditions from concurrent requests with valid keys
                 const existingKey = await manager.findOne(IdempotencyKey, {
                     where: { key: idempotencyKey },
                     lock: { mode: 'pessimistic_write' }
@@ -35,36 +33,27 @@ export class LedgerService {
                 if (existingKey) {
                     if (existingKey.response) {
                         this.logger.log(`Idempotency hit for key: ${idempotencyKey}`);
-                        // If response exists, return it immediately. The transaction was already successful.
-                        await queryRunner.rollbackTransaction(); // Rollback current logic transaction as we are just reading
+                        await queryRunner.rollbackTransaction();
                         return existingKey.response;
                     } else {
-                        // Key exists but no response. This implies an in-progress transaction or a previous crash.
-                        // We assume it's in progress.
                         await queryRunner.rollbackTransaction();
                         throw new ConflictException('Transaction with this Idempotency-Key is currently in progress. Please retry later.');
                     }
                 } else {
-                    // Reserve the key. 
-                    // If a concurrent request tries to insert the same key here, one will fail with unique constraint violation.
                     await manager.insert(IdempotencyKey, { key: idempotencyKey, created_at: new Date() });
                 }
             }
 
-            // 2. Validate Entries Balance
             this.validateBalance(dto.entries);
 
-            // 3. Prepare Transaction Data
             const transaction = new Transaction();
             transaction.description = dto.description;
             transaction.reference = dto.reference;
             transaction.entries = [];
 
-            // Sort entries by account ID to ensure consistent locking order and prevent deadlocks
             const entries = [...dto.entries].sort((a, b) => a.accountId.localeCompare(b.accountId));
 
             for (const entryDto of entries) {
-                // Lock each account with pessimistic_write to ensure exclusive access during this transaction
                 const account = await manager.findOne(Account, {
                     where: { id: entryDto.accountId },
                     lock: { mode: 'pessimistic_write' }
@@ -74,7 +63,6 @@ export class LedgerService {
                     throw new NotFoundException(`Account ${entryDto.accountId} not found`);
                 }
 
-                // Calculate new balance based on entry type
                 let newBalance = Number(account.balance);
                 if (entryDto.type === EntryType.DEBIT) {
                     newBalance += Number(entryDto.amount);
@@ -82,7 +70,6 @@ export class LedgerService {
                     newBalance -= Number(entryDto.amount);
                 }
 
-                // Enforce non-negative balance constraint
                 if (newBalance < 0) {
                     throw new BadRequestException({
                         message: 'Insufficient funds',
@@ -93,11 +80,9 @@ export class LedgerService {
                     });
                 }
 
-                // Update Account
                 account.balance = newBalance;
                 await manager.save(Account, account);
 
-                // Create Entry Record
                 const entry = new Entry();
                 entry.amount = entryDto.amount;
                 entry.type = entryDto.type;
@@ -105,15 +90,12 @@ export class LedgerService {
                 transaction.entries.push(entry);
             }
 
-            // 4. Save the Transaction and its Entries
             const savedTransaction = await manager.save(Transaction, transaction);
 
-            // 5. Update Idempotency Key with Response
             if (idempotencyKey) {
                 await manager.update(IdempotencyKey, { key: idempotencyKey }, { response: JSON.parse(JSON.stringify(savedTransaction)) });
             }
 
-            // 6. Commit
             await queryRunner.commitTransaction();
             this.logger.log(`Transaction successfully created: ${savedTransaction.id}`);
             return savedTransaction;

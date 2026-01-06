@@ -9,9 +9,9 @@ import * as winston from 'winston';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { IdempotencyKey } from './common/idempotency.entity';
-import { Account } from './ledger/account.entity';
+import { Account } from './ledger/entities/account.entity';
+import { Entry, Transaction } from './ledger/entities/transaction.entity';
 import { LedgerModule } from './ledger/ledger.module';
-import { Entry, Transaction } from './ledger/transaction.entity';
 
 import { configValidationSchema } from './common/config.validation';
 

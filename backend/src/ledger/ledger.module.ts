@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { IdempotencyKey } from '../common/idempotency.entity';
-import { Account } from './account.entity';
+import { Account } from './entities/account.entity';
+import { Entry, Transaction } from './entities/transaction.entity';
 import { LedgerController } from './ledger.controller';
 import { LedgerService } from './ledger.service';
-import { Entry, Transaction } from './transaction.entity';
 
 import { BullModule } from '@nestjs/bullmq';
 import { LedgerProcessor } from './ledger.processor';

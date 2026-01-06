@@ -1,8 +1,8 @@
 import * as dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
 import { IdempotencyKey } from '../common/idempotency.entity';
-import { Account } from '../ledger/account.entity';
-import { Entry, Transaction } from '../ledger/transaction.entity';
+import { Account } from '../ledger/entities/account.entity';
+import { Entry, Transaction } from '../ledger/entities/transaction.entity';
 
 dotenv.config();
 

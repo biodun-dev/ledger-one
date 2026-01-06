@@ -3,10 +3,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as fc from 'fast-check';
 import * as Joi from 'joi';
-import { IdempotencyKey } from '../src/common/idempotency.entity';
-import { Account } from '../src/ledger/account.entity';
-import { LedgerService } from '../src/ledger/ledger.service';
-import { Entry, EntryType, Transaction } from '../src/ledger/transaction.entity';
+import { IdempotencyKey } from '../common/idempotency.entity';
+import { Account } from './entities/account.entity';
+import { Entry, EntryType, Transaction } from './entities/transaction.entity';
+import { LedgerService } from './ledger.service';
 
 describe('Ledger Properties', () => {
     let service: LedgerService;
