@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Loader2 } from "lucide-react"
+import { Check, Copy, Loader2 } from "lucide-react"
 import * as React from "react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -14,9 +14,19 @@ interface TransactionFormProps {
 
 export function TransactionForm({ onSuccess }: TransactionFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [description, setDescription] = useState("")
   const [reference, setReference] = useState("")
   const [entries, setEntries] = useState([{ accountId: "", amount: "", type: "DEBIT" }, { accountId: "", amount: "", type: "CREDIT" }])
+
+  const exampleUuid = "550e8400-e29b-41d4-a716-446655440000"
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(exampleUuid)
+    setCopied(true)
+    toast.success("Example UUID copied to clipboard")
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const addEntry = () => {
     setEntries([...entries, { accountId: "", amount: "", type: "DEBIT" }])
@@ -38,6 +48,18 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
 
     // Generate Idempotency Key (simple client-side uuid for demo)
     const idempotencyKey = crypto.randomUUID()
+
+    // Client-side validation: UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    const invalidAccounts = entries.filter(e => !uuidRegex.test(e.accountId))
+    
+    if (invalidAccounts.length > 0) {
+      toast.error("Invalid Account IDs", {
+        description: "Please ensure all Account IDs are valid UUIDs."
+      })
+      setIsLoading(false)
+      return
+    }
 
     // Client-side validation: Debits must equal Credits
     const totalDebits = entries
@@ -101,7 +123,17 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
     <Card className="w-full max-w-2xl mx-auto bg-transparent border-none shadow-none">
       <CardHeader className="px-0 pt-0">
         <CardTitle className="text-2xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">Create Transaction</CardTitle>
-        <CardDescription className="text-zinc-500">Record a new double-entry transaction with ACID compliance.</CardDescription>
+        <CardDescription className="text-zinc-500 flex items-center justify-between">
+          <span>Record a new double-entry transaction with ACID compliance.</span>
+          <button 
+            type="button"
+            onClick={handleCopy}
+            className="flex items-center gap-2 group/copy text-[10px] font-mono bg-zinc-800/50 hover:bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700/50 hover:border-zinc-600 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+          >
+            <span>{exampleUuid.slice(0, 13)}...</span>
+            {copied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3 group-hover/copy:scale-110 transition-transform" />}
+          </button>
+        </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-6 px-0">
@@ -150,42 +182,47 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
               </Button>
             </div>
             <div className="space-y-3">
-              {entries.map((entry, index) => (
-                <div key={index} className="flex gap-3 items-start group">
-                  <Input 
-                    className="flex-1 bg-zinc-950/50 border-zinc-800 focus:ring-primary/20 transition-all h-11" 
-                    placeholder="Account ID" 
-                    value={entry.accountId} 
-                    onChange={(e: { target: { value: string } }) => updateEntry(index, "accountId", e.target.value)} 
-                    required 
-                  />
-                  <Input 
-                    className="w-32 bg-zinc-950/50 border-zinc-800 focus:ring-primary/20 transition-all h-11" 
-                    type="number" 
-                    placeholder="Amount" 
-                    step="0.01" 
-                    min="0"
-                    value={entry.amount} 
-                    onChange={(e: { target: { value: string } }) => updateEntry(index, "amount", e.target.value)} 
-                    required 
-                  />
-                  <div className="relative">
-                    <select 
-                      className="h-11 w-28 rounded-md border border-zinc-800 bg-zinc-950/50 px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all appearance-none text-zinc-300"
-                      value={entry.type}
-                      onChange={e => updateEntry(index, "type", e.target.value)}
-                    >
-                      <option value="DEBIT">Debit</option>
-                      <option value="CREDIT">Credit</option>
-                    </select>
+              {entries.map((entry, index) => {
+                const isValidUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(entry.accountId)
+                return (
+                  <div key={index} className="flex gap-3 items-start group">
+                    <Input 
+                      className={`flex-1 bg-zinc-950/50 border-zinc-800 focus:ring-primary/20 transition-all h-11 ${
+                        entry.accountId && !isValidUuid ? 'border-rose-500/50 ring-1 ring-rose-500/20' : ''
+                      }`} 
+                      placeholder="Account ID (UUID)" 
+                      value={entry.accountId} 
+                      onChange={(e: { target: { value: string } }) => updateEntry(index, "accountId", e.target.value)} 
+                      required 
+                    />
+                    <Input 
+                      className="w-32 bg-zinc-950/50 border-zinc-800 focus:ring-primary/20 transition-all h-11" 
+                      type="number" 
+                      placeholder="Amount" 
+                      step="0.01" 
+                      min="0"
+                      value={entry.amount} 
+                      onChange={(e: { target: { value: string } }) => updateEntry(index, "amount", e.target.value)} 
+                      required 
+                    />
+                    <div className="relative">
+                      <select 
+                        className="h-11 w-28 rounded-md border border-zinc-800 bg-zinc-950/50 px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all appearance-none text-zinc-300"
+                        value={entry.type}
+                        onChange={e => updateEntry(index, "type", e.target.value)}
+                      >
+                        <option value="DEBIT">Debit</option>
+                        <option value="CREDIT">Credit</option>
+                      </select>
+                    </div>
+                    {entries.length > 2 && (
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeEntry(index)} className="h-11 w-11 text-zinc-500 hover:text-rose-500 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20">
+                        &times;
+                      </Button>
+                    )}
                   </div>
-                  {entries.length > 2 && (
-                    <Button type="button" variant="ghost" size="icon" onClick={() => removeEntry(index)} className="h-11 w-11 text-zinc-500 hover:text-rose-500 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20">
-                      &times;
-                    </Button>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </CardContent>
