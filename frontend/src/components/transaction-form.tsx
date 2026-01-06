@@ -10,21 +10,22 @@ import { toast } from "sonner"
 
 interface TransactionFormProps {
   onSuccess: () => void
+  exampleAccountId?: string
 }
 
-export function TransactionForm({ onSuccess }: TransactionFormProps) {
+export function TransactionForm({ onSuccess, exampleAccountId }: TransactionFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [copied, setCopied] = useState(false)
   const [description, setDescription] = useState("")
   const [reference, setReference] = useState("")
   const [entries, setEntries] = useState([{ accountId: "", amount: "", type: "DEBIT" }, { accountId: "", amount: "", type: "CREDIT" }])
 
-  const exampleUuid = "550e8400-e29b-41d4-a716-446655440000"
+  const exampleUuid = exampleAccountId || "550e8400-e29b-41d4-a716-446655440000"
 
   const handleCopy = () => {
     navigator.clipboard.writeText(exampleUuid)
     setCopied(true)
-    toast.success("Example UUID copied to clipboard")
+    toast.success("Account ID copied to clipboard")
     setTimeout(() => setCopied(false), 2000)
   }
 

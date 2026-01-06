@@ -3,9 +3,9 @@
 import { TransactionForm } from "@/components/transaction-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
-import { Activity, ArrowDownLeft, ArrowUpRight, History, Wallet } from "lucide-react"
+import { Activity, ArrowDownLeft, ArrowUpRight, Copy, History, Wallet } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Toaster } from "sonner"
+import { Toaster, toast } from "sonner"
 
 interface Account {
   id: string
@@ -105,7 +105,7 @@ export default function Home() {
           <div className="space-y-8">
             <motion.div variants={itemVariants}>
               <div className="bg-zinc-900/40 backdrop-blur-xl border border-zinc-800/50 rounded-3xl p-8 shadow-2xl">
-                <TransactionForm onSuccess={fetchData} />
+                <TransactionForm onSuccess={fetchData} exampleAccountId={accounts[0]?.id} />
               </div>
             </motion.div>
             
@@ -188,11 +188,20 @@ export default function Home() {
                       key={acc.id} 
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="flex justify-between items-center p-4 border border-zinc-800/50 rounded-2xl bg-zinc-950/30 hover:bg-zinc-900/50 hover:border-zinc-700/50 transition-all cursor-default group"
+                      onClick={() => {
+                        navigator.clipboard.writeText(acc.id)
+                        toast.success(`Copied Account: ${acc.name}`)
+                      }}
+                      className="flex justify-between items-center p-4 border border-zinc-800/50 rounded-2xl bg-zinc-950/30 hover:bg-zinc-900/50 hover:border-zinc-700/50 transition-all cursor-pointer group"
                     >
                       <div className="flex flex-col gap-0.5">
-                         <span className="font-semibold text-zinc-200 tracking-tight group-hover:text-white">{acc.name}</span>
-                         <span className="text-[10px] text-zinc-500 font-mono uppercase opacity-60">ID: {acc.id.slice(0, 8)}</span>
+                         <div className="flex items-center gap-2">
+                           <span className="font-semibold text-zinc-200 tracking-tight group-hover:text-white">{acc.name}</span>
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <span className="text-[10px] text-zinc-500 font-mono uppercase opacity-60">ID: {acc.id.slice(0, 8)}...</span>
+                           <Copy className="w-2.5 h-2.5 text-zinc-600 group-hover:text-zinc-400 invisible group-hover:visible" />
+                         </div>
                       </div>
                       <div className="font-bold font-mono text-lg text-primary bg-primary/5 px-3 py-1 rounded-lg">
                         ${acc.balance}
