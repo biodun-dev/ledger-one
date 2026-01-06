@@ -24,24 +24,26 @@ async function seed() {
     const accountRepo = AppDataSource.getRepository(Account);
 
     const accountsToCreate = [
-        { name: 'Cash' },
-        { name: 'Revenue' },
-        { name: 'Expense' },
-        { name: 'Liabilities' },
-        { name: 'Equity' },
-        { name: 'Bank' },
+        { name: 'Cash', balance: 10000 },
+        { name: 'Bank', balance: 50000 },
+        { name: 'Equity', balance: 60000 },
+        { name: 'Revenue', balance: 0 },
+        { name: 'Expense', balance: 0 },
+        { name: 'Liabilities', balance: 0 },
     ];
 
     for (const accData of accountsToCreate) {
-        const existing = await accountRepo.findOneBy({ name: accData.name });
-        if (!existing) {
-            const account = new Account();
+        let account = await accountRepo.findOneBy({ name: accData.name });
+        if (!account) {
+            account = new Account();
             account.name = accData.name;
-            await accountRepo.save(account);
-            console.log(`Created account: ${accData.name}`);
+            console.log(`Creating account: ${accData.name}`);
         } else {
-            console.log(`Account already exists: ${accData.name}`);
+            console.log(`Updating account balance: ${accData.name}`);
         }
+
+        account.balance = accData.balance;
+        await accountRepo.save(account);
     }
 
     console.log('Seeding complete.');

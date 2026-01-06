@@ -42,6 +42,9 @@ $ pnpm run start:dev
 
 # production mode
 $ pnpm run start:prod
+
+# seed database
+$ pnpm run seed
 ```
 
 ## Run tests

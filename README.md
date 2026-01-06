@@ -43,7 +43,14 @@ LedgerOne is a senior-level engineering project demonstrating how to build a fin
    ```
    *(Note: This happens automatically if `migrationsRun: true` is set in app module, but manual run is safer)*
 
-4. Start the application (Frontend + Backend):
+4. Seed the database (Backend):
+   ```bash
+   cd backend
+   pnpm run seed
+   cd ..
+   ```
+
+5. Start the application (Frontend + Backend):
    ```bash
    pnpm dev
    ```

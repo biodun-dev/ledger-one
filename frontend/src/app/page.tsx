@@ -1,5 +1,6 @@
 "use client"
 
+import { AccountCreate } from "@/components/account-create"
 import { TransactionForm } from "@/components/transaction-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AnimatePresence, motion } from "framer-motion"
@@ -41,6 +42,8 @@ export default function Home() {
 
   useEffect(() => {
     fetchData()
+    const interval = setInterval(fetchData, 5000) // Poll every 5s
+    return () => clearInterval(interval)
   }, [])
 
   const containerVariants = {
@@ -175,11 +178,12 @@ export default function Home() {
 
           <motion.div variants={itemVariants} className="space-y-8">
             <Card className="bg-zinc-900/40 backdrop-blur-xl border-zinc-800/50 rounded-3xl shadow-2xl sticky top-8">
-              <CardHeader className="border-b border-zinc-800/50 px-8 py-6">
+              <CardHeader className="border-b border-zinc-800/50 px-8 py-6 flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-xl font-semibold flex items-center gap-3">
                   <Wallet className="w-5 h-5 text-zinc-400" />
                   Accounts
                 </CardTitle>
+                <AccountCreate onAccountCreated={fetchData} />
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-3">
